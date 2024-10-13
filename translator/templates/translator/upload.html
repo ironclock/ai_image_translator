@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Image for Translation</title>
+    <style>
+        #imageCanvas {
+            border: 1px solid #000;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Upload an Image for Translation</h1>
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
+        {% csrf_token %}
+        <label for="source_language">Source Language:</label>
+        <input type="text" id="source_language" name="source_language" required>
+        <br>
+        <label for="target_language">Target Language:</label>
+        <input type="text" id="target_language" name="target_language" required>
+        <br>
+        <input type="file" id="imageInput" accept="image/*" required>
+        <button type="button" onclick="uploadImage()">Upload and Prepare</button>
+    </form>
+
+    <div id="canvasContainer" style="display:none;">
+        <canvas id="imageCanvas"></canvas>
+        <br>
+        <button onclick="clearSelection()">Clear Selection</button>
+        <button onclick="translateSelected()">Translate Selected</button>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        let canvas, ctx;
+        let rect = {};
+        let drag = false;
+        let imageObj = null;
+        let scaleFactor = 1;
+
+        function uploadImage() {
+            const input = document.getElementById('imageInput');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imageObj = new Image();
+                    imageObj.onload = function () {
+                        canvas = document.getElementById('imageCanvas');
+                        const maxWidth = 800;
+                        const maxHeight = 600;
+                        let width = imageObj.width;
+                        let height = imageObj.height;
+
+                        if (width > maxWidth || height > maxHeight) {
+                            if (width / height > maxWidth / maxHeight) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            } else {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        scaleFactor = imageObj.width / width;
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx = canvas.getContext('2d');
+                        ctx.drawImage(imageObj, 0, 0, width, height);
+                        document.getElementById('canvasContainer').style.display = 'block';
+                    }
+                    imageObj.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function initDraw(canvas) {
+            function mouseDown(e) {
+                rect.startX = e.pageX - canvas.offsetLeft;
+                rect.startY = e.pageY - canvas.offsetTop;
+                drag = true;
+            }
+
+            function mouseUp() { drag = false; }
+
+            function mouseMove(e) {
+                if (drag) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(imageObj, 0, 0, canvas.width, canvas.height);
+                    rect.w = (e.pageX - canvas.offsetLeft) - rect.startX;
+                    rect.h = (e.pageY - canvas.offsetTop) - rect.startY;
+                    ctx.strokeStyle = 'red';
+                    ctx.strokeRect(rect.startX, rect.startY, rect.w, rect.h);
+                }
+            }
+
+            canvas.addEventListener('mousedown', mouseDown, false);
+            canvas.addEventListener('mouseup', mouseUp, false);
+            canvas.addEventListener('mousemove', mouseMove, false);
+        }
+
+        function clearSelection() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(imageObj, 0, 0, canvas.width, canvas.height);
+            rect = {};
+        }
+
+        function translateSelected() {
+            if (rect.w && rect.h) {
+                console.log("Translation started");
+
+                // Create a temporary canvas with only the original image
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = imageObj.width;
+                tempCanvas.height = imageObj.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(imageObj, 0, 0);
+
+                const imageData = tempCanvas.toDataURL('image/png');
+                const formData = new FormData(document.getElementById('uploadForm'));
+                formData.append('image', imageData);
+                formData.append('x', rect.startX * scaleFactor);
+                formData.append('y', rect.startY * scaleFactor);
+                formData.append('width', rect.w * scaleFactor);
+                formData.append('height', rect.h * scaleFactor);
+                formData.append('scale_factor', scaleFactor);
+
+                console.log("Form data prepared");
+
+                $.ajax({
+                    url: '{% url "upload" %}',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    beforeSend: function () {
+                        console.log("AJAX request about to be sent");
+                    },
+                    success: function (response) {
+                        console.log("Success response:", response);
+                        if (response.result_url) {
+                            window.location.href = response.result_url;
+                        } else {
+                            console.error("No result URL in the response");
+                            alert("Translation completed, but no result URL was provided.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error:", error);
+                        console.error("Status:", status);
+                        console.error("Response:", xhr.responseText);
+                        alert("An error occurred during translation. Please check the console for details.");
+                    }
+                });
+            } else {
+                alert('Please select an area to translate');
+            }
+        }
+
+        window.onload = function () {
+            canvas = document.getElementById('imageCanvas');
+            initDraw(canvas);
+        }
+    </script>
+</body>
+
+</html>

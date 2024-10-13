@@ -1,0 +1,59 @@
+# Python bytecode
+*.py[cod]
+__pycache__/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.whl
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+htmlcov/
+.tox/
+noxfile.py
+.cache/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+celerybeat-schedule
+django_private_storage/
+gunicorn.pid
+
+# Django specific
+*.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+*.pot
+*.pyc
+
+# Environments
+env/
+venv/
+ENV/
+venv.bak/
+env.bak/
+.venv/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+
+.env

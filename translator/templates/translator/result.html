@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Translation Result</title>
+</head>
+<body>
+    <h1>Translation Result</h1>
+    <h2>Original Image:</h2>
+    <img src="{{ job.original_image.url }}" alt="Original Image" style="max-width: 500px;">
+    
+    <h2>Translated Image:</h2>
+    {% if job.translated_image %}
+        <img src="{{ job.translated_image.url }}" alt="Translated Image" style="max-width: 500px;">
+    {% else %}
+        <p>Translation failed or is still in progress.</p>
+    {% endif %}
+    
+    <p><a href="{% url 'upload' %}">Translate another image</a></p>
+</body>
+</html>
