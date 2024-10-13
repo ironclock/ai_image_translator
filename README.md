@@ -69,6 +69,16 @@ For a full list of Python package requirements, see `requirements.txt`.
 4. Click "Translate" and wait for the process to complete.
 5. View and download the translated image.
 
+## Areas for Improvement
+
+- **Text Alignment**: Improve the precision of text placement to better match the original layout.
+- **Text Color Matching**: Enhance color detection and application to ensure translated text matches the original color, including handling gradients and transparency.
+- **Font Matching**: Implement more accurate font detection and matching to closely replicate the original style.
+- **Font Size Matching**: Refine the font size estimation for a more consistent match with the original text.
+- **Text Detection**: Utilize more advanced OCR models to improve accuracy, especially for complex or non-standard text layouts.
+- **Inpainting**: Improve the background inpainting process for smoother and more seamless text replacement.
+
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
